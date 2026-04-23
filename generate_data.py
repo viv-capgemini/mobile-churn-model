@@ -1,30 +1,59 @@
 """Generate synthetic churn dataset"""
-import pandas as pd
 import numpy as np
+import pandas as pd
+from pathlib import Path
 
 np.random.seed(42)
+n_samples = 5000
+output_path = Path("data/raw")
 
-# Generate 1000 samples
-n_samples = 1000
+output_path.mkdir(parents=True, exist_ok=True)
 
-data = {
-    'customer_id': range(1, n_samples + 1),
-    'age': np.random.randint(18, 70, n_samples),
-    'tenure_months': np.random.randint(1, 72, n_samples),
-    'monthly_charges': np.random.uniform(20, 120, n_samples),
-    'total_charges': np.random.uniform(100, 8000, n_samples),
-    'num_support_calls': np.random.randint(0, 10, n_samples),
-}
-
-# Simple churn logic: higher charges + more support calls = more churn
-churn_prob = (
-    (data['monthly_charges'] / 120) * 0.3 +
-    (data['num_support_calls'] / 10) * 0.4 +
-    (1 - data['tenure_months'] / 72) * 0.3
+contract_types = np.random.choice(
+    ['Phone+SIM', 'SIM-only', 'Rolling'],
+    size=n_samples,
+    p=[0.48, 0.32, 0.20]
 )
-data['churn'] = (np.random.random(n_samples) < churn_prob).astype(int)
 
-df = pd.DataFrame(data)
-df.to_csv('data/churn_data.csv', index=False)
-print(f"Generated {len(df)} samples")
-print(f"Churn rate: {df['churn'].mean():.2%}")
+tenure = []
+monthly = []
+device_cost = []
+
+for c in contract_types:
+    if c == 'Phone+SIM':
+        tenure.append(np.random.randint(12, 61))
+        monthly.append(np.random.uniform(45, 95))
+        device_cost.append(np.random.uniform(600, 1200))
+    elif c == 'SIM-only':
+        tenure.append(np.random.randint(1, 37))
+        monthly.append(np.random.uniform(8, 35))
+        device_cost.append(0)
+    else:
+        tenure.append(np.random.randint(1, 13))
+        monthly.append(np.random.uniform(15, 45))
+        device_cost.append(0)
+
+tenure = np.array(tenure)
+monthly = np.array(monthly)
+support_calls = np.random.poisson(2, n_samples)
+
+churn_prob = (
+    0.15
+    + (contract_types == 'Rolling') * 0.2
+    + (tenure < 6) * 0.15
+    + (support_calls >= 4) * 0.2
+)
+
+churn = np.random.binomial(1, np.clip(churn_prob, 0, 0.85))
+
+df = pd.DataFrame({
+    "contract_type": contract_types,
+    "tenure_months": tenure,
+    "monthly_charges": monthly,
+    "device_cost": device_cost,
+    "num_support_calls": support_calls,
+    "total_charges": tenure * monthly,
+    "churned": churn
+})
+
+df.to_csv(output_path / "customers.csv", index=False)
