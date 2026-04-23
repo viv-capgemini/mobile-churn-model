@@ -1,0 +1,20 @@
+stages:
+  generate_data:
+    cmd: python src/data/generate_data.py
+    outs:
+      - data/raw/customers.csv
+
+  build_features:
+    cmd: python src/features/build_features.py
+    deps:
+      - data/raw/customers.csv
+    outs:
+      - data/features/features.csv
+
+  train:
+    cmd: python src/train/train_model.py
+    deps:
+      - data/features/features.csv
+    outs:
+      - models/churn_model.pkl
+``
