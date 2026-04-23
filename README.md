@@ -66,15 +66,16 @@ python api.py
 - lsof -ti :8000 | xargs kill -9
 
 ### API Usage
-```curl -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  -d '{
-    "age": 45,
-    "tenure_months": 24,
-    "monthly_charges": 79.99,
-    "total_charges": 1920.00,
-    "num_support_calls": 3
-  }'
+```POST /predict
+{
+  "age": 34,
+  "contract_type": "SIM-only",
+  "tenure_months": 4,
+  "monthly_charges": 22.0,
+  "device_cost": 0,
+  "num_support_calls": 3,
+  "total_charges": 88.0
+}
 ```
 Response:
 ```
