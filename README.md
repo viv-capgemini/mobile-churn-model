@@ -62,6 +62,9 @@ python train.py
 python api.py
 # Visit http://localhost:8000/docs
 ```
+### Address already in use
+- lsof -ti :8000 | xargs kill -9
+
 ### API Usage
 ```curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
