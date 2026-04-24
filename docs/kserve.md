@@ -23,40 +23,33 @@ helm install cert-manager jetstack/cert-manager \
 kubectl get pods -n cert-manager
 ```
 
-## 2. Install Knative Serving (optional — skip for RawDeployment mode)
-
-```bash
-kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.14.0/serving-crds.yaml
-kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.14.0/serving-core.yaml
-
-# Install a networking layer (Kourier)
-kubectl apply -f https://github.com/knative/net-kourier/releases/download/knative-v1.14.0/kourier.yaml
-kubectl patch configmap/config-network \
-  --namespace knative-serving \
-  --type merge \
-  --patch '{"data":{"ingress-class":"kourier.ingress.networking.knative.dev"}}'
+## 2. Install Cert Manager
+```
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
 ```
 
 ## 3. Install KServe
 
 KServe v0.17+ restructured Helm charts — there is no longer a Helm repo URL. Charts are published as GitHub release assets and must be installed directly.
 
-```bash
-# Step 1 — Install CRDs
-helm install kserve-crd \
-  https://github.com/kserve/kserve/releases/download/v0.17.0/helm-chart-kserve-crd-v0.17.0.tgz \
-  --namespace kserve \
-  --create-namespace
+# Install KServe CRDs
+```
+kubectl create namespace kserve
 
-# Step 2 — Install KServe controller and resources
-helm install kserve \
-  https://github.com/kserve/kserve/releases/download/v0.17.0/helm-chart-kserve-resources-v0.17.0.tgz \
-  --namespace kserve
+helm install kserve-crd oci://ghcr.io/kserve/charts/kserve-crd \
+  --version v0.16.0 \
+  -n kserve \
+  --wait
+```
 
-# Step 3 — Install serving runtime configs (sklearn, xgboost, etc.)
-helm install kserve-runtime-configs \
-  https://github.com/kserve/kserve/releases/download/v0.17.0/helm-chart-kserve-runtime-configs-v0.17.0.tgz \
-  --namespace kserve
+# Install KServe controller
+```
+helm install kserve oci://ghcr.io/kserve/charts/kserve \
+  --version v0.16.0 \
+  -n kserve \
+  --set kserve.controller.deploymentMode=RawDeployment \
+  --wait
+
 ```
 
 > For RawDeployment (no Knative), add `--set kserve.controller.deploymentMode=RawDeployment` to the `kserve-resources` install step.
