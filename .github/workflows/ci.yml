@@ -19,14 +19,14 @@ jobs:
           python-version: "3.11"
           cache: pip
 
+      - name: Show S3 bucket and region
+        run: |
+         echo s3 bucket: ${{ vars.AWS_S3_DVC_BUCKET }}
+         echo region: ${{ vars.AWS_DEFAULT_REGION }}
+
       - name: Install dependencies
         run: |
          pip install -r requirements.txt
-         
-      - name: Show S3 bucket and region
-        run: |
-         echo s3 bucket: ${{ env.AWS_S3_DVC_BUCKET }}
-         echo region: ${{ env.AWS_DEFAULT_REGION }}
 
       - name: Configure DVC S3 remote
         env:
@@ -43,10 +43,10 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
         run: |
           aws s3 cp models/churn_model.pkl \
-            ${{ env.AWS_S3_DVC_BUCKET }}dvc-storage-mobile-churn-model/model/churn_model.pkl
+            ${{ vars.AWS_S3_DVC_BUCKET }}dvc-storage-mobile-churn-model/model/churn_model.pkl
 
       - name: Push pipeline artifacts to DVC remote
         env:
