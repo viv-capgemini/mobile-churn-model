@@ -6,13 +6,13 @@ np.random.seed(42)
 n_samples = 1000
 output_path = Path("data/raw")
 output_path.mkdir(parents=True, exist_ok=True)
-print(f"Generating {n_samples} customer records...")
+print(f"Generating {n_samples} mobile customer records...")
 
 # --- NEW: realistic age distribution ---
 ages = np.clip(np.random.normal(loc=42, scale=12, size=n_samples), 18, 85).astype(int)
 
 contract_types = np.random.choice(
-    ["Phone+SIM", "SIM-only", "Rolling"], size=n_samples, p=[0.48, 0.32, 0.20]
+    ["Phone+SIM", "SIM-only", "Rolling"], size=n_samples, p=[0.60, 0.25, 0.15]
 )
 
 tenure = []
@@ -22,11 +22,11 @@ device_cost = []
 for c in contract_types:
     if c == "Phone+SIM":
         tenure.append(np.random.randint(12, 61))
-        monthly.append(np.random.uniform(45, 95))
-        device_cost.append(np.random.uniform(600, 1200))
+        monthly.append(np.random.uniform(25, 95))
+        device_cost.append(np.random.uniform(400, 1200))
     elif c == "SIM-only":
-        tenure.append(np.random.randint(1, 37))
-        monthly.append(np.random.uniform(8, 35))
+        tenure.append(np.random.randint(0, 37))
+        monthly.append(np.random.uniform(5, 35))
         device_cost.append(0)
     else:  # Rolling
         tenure.append(np.random.randint(1, 13))
@@ -42,8 +42,8 @@ churn_prob = (
     0.12
     + (contract_types == "Rolling") * 0.20
     + (tenure < 6) * 0.15
-    + (support_calls >= 4) * 0.20
-    + (ages < 25) * 0.05  # younger customers churn slightly more
+    + (support_calls >= 3) * 0.20
+    + (ages < 18) * 0.05  # younger customers churn slightly more
 )
 
 churn = np.random.binomial(1, np.clip(churn_prob, 0, 0.85))
