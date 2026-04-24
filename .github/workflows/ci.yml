@@ -22,8 +22,11 @@ jobs:
       - name: Install dependencies
         run: |
          pip install -r requirements.txt
-         echo ${{ env.AWS_S3_DVC_BUCKET }}
-         echo ${{ env.AWS_DEFAULT_REGION }}
+         
+      - name: Show S3 bucket and region
+        run: |
+         echo s3 bucket: ${{ env.AWS_S3_DVC_BUCKET }}
+         echo region: ${{ env.AWS_DEFAULT_REGION }}
 
       - name: Configure DVC S3 remote
         env:
