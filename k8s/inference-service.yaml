@@ -1,0 +1,17 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: churn-model
+  namespace: ml
+spec:
+  predictor:
+    serviceAccountName: kserve-s3-sa
+    sklearn:
+      storageUri: s3://mlops-viv-dvc-bucket/dvc-storage-mobile-churn-model/churn_model.pkl
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "256Mi"
+        limits:
+          cpu: "500m"
+          memory: "512Mi"

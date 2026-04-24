@@ -14,13 +14,16 @@ print(f"Loaded {len(df)} rows, {len(df.columns)} columns")
 X = df.drop(columns=["churned"])
 y = df["churned"]
 
-categorical_features = ["contract_type"]
-numeric_features = [c for c in X.columns if c not in categorical_features]
+# Use positional indices so the pipeline works with both DataFrames and
+# numpy arrays (required for KServe sklearn runtime).
+# contract_type is always at column index 1.
+cat_idx = [X.columns.get_loc("contract_type")]
+num_idx = [i for i in range(len(X.columns)) if i not in cat_idx]
 
 preprocess = ColumnTransformer(
     [
-        ("cat", OneHotEncoder(drop="first"), categorical_features),
-        ("num", "passthrough", numeric_features),
+        ("cat", OneHotEncoder(drop="first"), cat_idx),
+        ("num", "passthrough", num_idx),
     ]
 )
 
