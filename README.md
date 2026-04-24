@@ -59,6 +59,14 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## AWS S3 & DVC
+
+See [docs/dvc.md](docs/dvc.md) for instructions on versioning data with DVC and uploading files to S3.
+
+## KServe
+
+See [docs/kserve.md](docs/kserve.md) for Helm installation instructions, including deploying the InferenceService and managing AWS credentials with [Sealed Secrets](docs/kserve.md#6a-sealed-secrets-production--safe-to-commit).
+
 ## Running the Pipeline
 
 ```bash
@@ -102,6 +110,21 @@ curl -X POST http://localhost:8000/predict \
   }'
 ```
 
+**KServe (`POST /v1/models/churn-model:predict`)** — requires all 12 features including engineered ones:
+
+```bash
+# Features: age, contract_type, tenure_months, monthly_charges, device_cost,
+#           num_support_calls, total_charges, avg_monthly_spend,
+#           short_tenure, high_support, young_customer, senior_customer
+curl -X POST http://localhost:8080/v1/models/churn-model:predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "instances": [
+        [34, "SIM-only", 4, 22.0, 0, 3, 88.0, 22.0, 1, 0, 0, 0]
+    ]
+  }'
+```
+
 Response:
 
 ```json
@@ -130,10 +153,3 @@ Response:
 | `Phone+SIM` | Handset + SIM contract |
 | `SIM-only` | SIM-only plan |
 | `Rolling` | Rolling monthly contract |
-Response:
-```
-{
-  "churn": 1,
-  "churn_probability": 0.73
-}
-```
