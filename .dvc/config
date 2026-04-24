@@ -1,4 +1,4 @@
 [core]
     remote = s3remote
 ['remote "s3remote"']
-    url = s3://mlops-viv-dvc-bucket/dvc-storage-mobile-churn-model/
+    url = s3://mlops-viv-dvc-bucket/dvc-storage-mobile-churn-model/model/

@@ -37,10 +37,10 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: eu-west-2
+          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
         run: |
           aws s3 cp models/churn_model.pkl \
-            s3://mlops-viv-dvc-bucket/dvc-storage-mobile-churn-model/churn_model.pkl
+            ${{ env.AWS_S3_DVC_BUCKET }}/dvc-storage-mobile-churn-model/model/churn_model.pkl
 
       - name: Push pipeline artifacts to DVC remote
         env:
