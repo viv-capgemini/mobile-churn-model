@@ -20,7 +20,10 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+         pip install -r requirements.txt
+         echo ${{ env.AWS_S3_DVC_BUCKET }}
+         echo ${{ env.AWS_DEFAULT_REGION }}
 
       - name: Configure DVC S3 remote
         env:
@@ -40,7 +43,7 @@ jobs:
           AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
         run: |
           aws s3 cp models/churn_model.pkl \
-            ${{ env.AWS_S3_DVC_BUCKET }}/dvc-storage-mobile-churn-model/model/churn_model.pkl
+            ${{ env.AWS_S3_DVC_BUCKET }}dvc-storage-mobile-churn-model/model/churn_model.pkl
 
       - name: Push pipeline artifacts to DVC remote
         env:
