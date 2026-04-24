@@ -46,7 +46,7 @@ jobs:
           AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
         run: |
           aws s3 cp models/churn_model.pkl \
-            ${{ vars.AWS_S3_DVC_BUCKET }}dvc-storage-mobile-churn-model/model/churn_model.pkl
+            ${{ vars.AWS_S3_DVC_BUCKET }}/dvc-storage-mobile-churn-model/model/churn_model.pkl
 
       - name: Push pipeline artifacts to DVC remote
         env:
