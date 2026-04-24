@@ -13,8 +13,8 @@ git commit -m "Initialise DVC"
 ## Configure S3 Remote
 
 ```bash
-dvc remote add -d myremote s3://your-bucket-name/mobile-churn-model
-dvc remote modify myremote region eu-west-2   # update to your bucket's region
+dvc remote add -d s3remote s3://your-bucket-name/mobile-churn-model
+dvc remote modify s3remote region eu-west-2   # update to your bucket's region
 git add .dvc/config
 git commit -m "Add DVC S3 remote"
 ```
