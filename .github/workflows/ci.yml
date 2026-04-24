@@ -6,27 +6,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  train:
+  run-pipeline:
+    name: Generate → Features → Train
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
 
-      - name: Show S3 bucket and region
-        run: |
-         echo s3 bucket: ${{ vars.AWS_S3_DVC_BUCKET }}
-         echo region: ${{ vars.AWS_DEFAULT_REGION }}
-
       - name: Install dependencies
-        run: |
-         pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Configure DVC S3 remote
         env:
@@ -36,8 +29,26 @@ jobs:
           dvc remote modify s3remote access_key_id "$AWS_ACCESS_KEY_ID"
           dvc remote modify s3remote secret_access_key "$AWS_SECRET_ACCESS_KEY"
 
-      - name: Run pipeline (generate → features → train)
+      - name: Run DVC pipeline
         run: dvc repro
+
+      - name: Upload model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: churn-model
+          path: models/churn_model.pkl
+
+  push-to-s3:
+    name: Push Model to S3
+    runs-on: ubuntu-latest
+    needs: run-pipeline
+
+    steps:
+      - name: Download model artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: churn-model
+          path: models/
 
       - name: Push model to S3 for KServe
         env:
@@ -45,10 +56,41 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
         run: |
+          echo "Uploading to ${{ vars.AWS_S3_DVC_BUCKET }}/dvc-storage-mobile-churn-model/model/"
           aws s3 cp models/churn_model.pkl \
             ${{ vars.AWS_S3_DVC_BUCKET }}/dvc-storage-mobile-churn-model/model/churn_model.pkl
 
-      - name: Push pipeline artifacts to DVC remote
+  push-dvc-artifacts:
+    name: Push Artifacts to DVC Remote
+    runs-on: ubuntu-latest
+    needs: run-pipeline
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download model artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: churn-model
+          path: models/
+
+      - name: Configure DVC S3 remote
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          dvc remote modify s3remote access_key_id "$AWS_ACCESS_KEY_ID"
+          dvc remote modify s3remote secret_access_key "$AWS_SECRET_ACCESS_KEY"
+
+      - name: Push artifacts to DVC remote
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
